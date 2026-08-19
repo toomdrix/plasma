@@ -81,9 +81,10 @@ export interface CAMParameters {
   smallHoleThreshold: number;// mm (cut diameter < 30mm)
   smallHoleFeedScale: number;// percentage (e.g. 60%)
 
-  // Datum Origin
+  // Datum Origin & Export Options
   datumOrigin: DatumOrigin;
   customOriginOffset?: Point2D;
+  includeComments?: boolean;
 }
 
 export type DatumOrigin =

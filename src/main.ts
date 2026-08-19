@@ -38,6 +38,7 @@ class MicroPlasmaApp {
   private inputSmallHoleThreshold!: HTMLInputElement;
   private inputSmallHoleSpeedScale!: HTMLInputElement;
   private cadOriginToggle!: HTMLInputElement;
+  private includeCommentsToggle!: HTMLInputElement;
   private leadInTypePills!: NodeListOf<HTMLElement>;
   private originNodes!: NodeListOf<HTMLElement>;
   private currentDatumLabel!: HTMLElement;
@@ -90,6 +91,7 @@ class MicroPlasmaApp {
     this.inputSmallHoleThreshold = document.getElementById('paramSmallHoleThreshold') as HTMLInputElement;
     this.inputSmallHoleSpeedScale = document.getElementById('paramSmallHoleSpeedScale') as HTMLInputElement;
     this.cadOriginToggle = document.getElementById('cadOriginToggle') as HTMLInputElement;
+    this.includeCommentsToggle = document.getElementById('includeCommentsToggle') as HTMLInputElement;
     this.leadInTypePills = document.querySelectorAll('#leadInTypeGroup .radio-pill');
     this.originNodes = document.querySelectorAll('#originGrid .origin-node');
     this.currentDatumLabel = document.getElementById('currentDatumLabel')!;
@@ -239,6 +241,14 @@ class MicroPlasmaApp {
       this.updateDatumLabel();
       this.reprocessCAM();
     });
+
+    // Include Comments Toggle
+    if (this.includeCommentsToggle) {
+      this.includeCommentsToggle.addEventListener('change', () => {
+        this.params.includeComments = this.includeCommentsToggle.checked;
+        this.reprocessCAM();
+      });
+    }
   }
 
   private updateDatumLabel() {
@@ -260,6 +270,9 @@ class MicroPlasmaApp {
     this.inputOverburn.value = String(this.params.overburnDistance);
     this.inputSmallHoleThreshold.value = String(this.params.smallHoleThreshold);
     this.inputSmallHoleSpeedScale.value = String(this.params.smallHoleFeedScale);
+    if (this.includeCommentsToggle) {
+      this.includeCommentsToggle.checked = Boolean(this.params.includeComments);
+    }
 
     this.leadInTypePills.forEach((pill) => {
       if (pill.dataset.value === this.params.leadInType) {

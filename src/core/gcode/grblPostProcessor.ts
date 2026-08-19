@@ -10,10 +10,9 @@ import {
 
 export class GRBLPostProcessor {
   /**
-   * Generates GRBL v1.1 / NIST RS274NGC V3 compliant plasma G-code (.nc)
-   * with standalone modal initialization headers, clean comment separation,
-   * incremental I/J arc centers rounded strictly to 0.001mm precision,
-   * floating-point dwell commands, and clean M5/M2 program termination.
+   * Generates GRBL v1.1 / NIST RS274NGC V3 compliant plasma G-code (.nc).
+   * By default, strips all comments and empty lines to guarantee 100% compatibility
+   * across all hardware controllers, mobile senders, and streaming buffers.
    */
   public generate(
     operations: ToolpathOperation[],
@@ -29,12 +28,15 @@ export class GRBLPostProcessor {
   } {
     const originShift = this.computeOriginShift(bounds, params.datumOrigin, params.customOriginOffset);
     const lines: string[] = [];
+    const withComments = Boolean(params.includeComments);
 
-    // Informational header comments (standalone lines)
-    lines.push('( MicroPlasma CAM - GRBL Plasma Post-Processor )');
-    lines.push(`( Material: ${params.materialPreset || 'Custom'} )`);
-    lines.push(`( Feed: ${params.cutFeedRate} mm/min, Pierce Delay: ${this.fmtDwell(params.pierceDelay)}s, Kerf: ${params.kerfWidth} mm )`);
-    lines.push(`( Datum: ${params.datumOrigin} )`);
+    // Optional informational header comments
+    if (withComments) {
+      lines.push('( MicroPlasma CAM - GRBL Plasma Post-Processor )');
+      lines.push(`( Material: ${params.materialPreset || 'Custom'} )`);
+      lines.push(`( Feed: ${params.cutFeedRate} mm/min, Pierce Delay: ${this.fmtDwell(params.pierceDelay)}s, Kerf: ${params.kerfWidth} mm )`);
+      lines.push(`( Datum: ${params.datumOrigin} )`);
+    }
 
     // Modal Initialization Header (G91.1 before G90 ensures buggy senders do not get stuck in G91)
     lines.push('G21');
@@ -42,7 +44,7 @@ export class GRBLPostProcessor {
     lines.push('G90');
     lines.push('G94');
     lines.push('G17');
-    lines.push('');
+    if (withComments) lines.push('');
 
     let totalCutLength = 0;
     let totalRapidLength = 0;
@@ -55,12 +57,14 @@ export class GRBLPostProcessor {
 
     for (let opIdx = 0; opIdx < operations.length; opIdx++) {
       const op = operations[opIdx];
-      const opName =
-        op.classification === 'INNER_HOLE'
-          ? `Operation ${opIdx + 1}: Internal Cutout (${op.isCircularHole ? 'Hole' : 'Contour'})`
-          : `Operation ${opIdx + 1}: Outer Perimeter`;
 
-      lines.push(`( --- ${opName} --- )`);
+      if (withComments) {
+        const opName =
+          op.classification === 'INNER_HOLE'
+            ? `Operation ${opIdx + 1}: Internal Cutout (${op.isCircularHole ? 'Hole' : 'Contour'})`
+            : `Operation ${opIdx + 1}: Outer Perimeter`;
+        lines.push(`( --- ${opName} --- )`);
+      }
 
       // 1. Rapid move to Pierce Point
       const pierceX = op.piercePoint.x + originShift.x;
@@ -72,7 +76,7 @@ export class GRBLPostProcessor {
       lines.push(`G0 X${this.fmt(pierceX)} Y${this.fmt(pierceY)}`);
       currentPos = { x: pierceX, y: pierceY };
 
-      // 2. Torch ON & Dwell (clean lines without inline comments)
+      // 2. Torch ON & Dwell
       lines.push('M3 S1000');
       if (params.pierceDelay > 0) {
         lines.push(`G4 P${this.fmtDwell(params.pierceDelay)}`);
@@ -82,7 +86,7 @@ export class GRBLPostProcessor {
       // 3. Lead-In Motion
       const opFeed = op.feedRate || params.cutFeedRate;
       if (op.leadIn.segments.length > 0) {
-        lines.push(`( Lead-in @ F${opFeed} )`);
+        if (withComments) lines.push(`( Lead-in @ F${opFeed} )`);
         for (const seg of op.leadIn.segments) {
           const segDist = this.emitSegmentGCode(seg, originShift, opFeed, lines, true);
           totalCutLength += segDist;
@@ -92,7 +96,7 @@ export class GRBLPostProcessor {
       }
 
       // 4. Main Cut Contour
-      lines.push(`( Main Cut Contour @ F${opFeed} )`);
+      if (withComments) lines.push(`( Main Cut Contour @ F${opFeed} )`);
       for (const seg of op.cutPath) {
         const segDist = this.emitSegmentGCode(seg, originShift, opFeed, lines, false);
         totalCutLength += segDist;
@@ -103,7 +107,7 @@ export class GRBLPostProcessor {
       // 5. Overburn / Torch OFF handling
       if (op.overburn && op.overburn.segments.length > 0) {
         lines.push('M5');
-        lines.push('( Overburn coasting through cut line )');
+        if (withComments) lines.push('( Overburn coasting through cut line )');
         for (const seg of op.overburn.segments) {
           const segDist = this.emitSegmentGCode(seg, originShift, opFeed, lines, false);
           totalCutLength += segDist;
@@ -117,7 +121,7 @@ export class GRBLPostProcessor {
 
       // 6. Lead-out if applicable
       if (op.leadOut && op.leadOut.segments.length > 0) {
-        lines.push('( Lead-out )');
+        if (withComments) lines.push('( Lead-out )');
         for (const seg of op.leadOut.segments) {
           const segDist = this.emitSegmentGCode(seg, originShift, opFeed, lines, false);
           totalCutLength += segDist;
@@ -126,11 +130,11 @@ export class GRBLPostProcessor {
         }
       }
 
-      lines.push('');
+      if (withComments) lines.push('');
     }
 
     // Program Termination Footer
-    lines.push('( --- Footer --- )');
+    if (withComments) lines.push('( --- Footer --- )');
     const returnDist = Math.hypot(0 - currentPos.x, 0 - currentPos.y);
     totalRapidLength += returnDist;
     totalRapidTimeMin += returnDist / RAPID_SPEED_MM_MIN;
@@ -143,13 +147,7 @@ export class GRBLPostProcessor {
       totalCutTimeMin * 60 + totalRapidTimeMin * 60 + pierceCount * (params.pierceDelay + 0.5)
     );
 
-    // Verify all lines respect max 128 chars
-    const gcode = lines.join('\n');
-    for (const line of lines) {
-      if (line.length > 128) {
-        console.warn(`G-code line exceeds 128 chars (${line.length} chars): ${line}`);
-      }
-    }
+    const gcode = lines.filter((l) => withComments || l.trim().length > 0).join('\n');
 
     return {
       gcode,

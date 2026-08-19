@@ -122,7 +122,7 @@ describe('KerfOffsetter & LeadInGenerator', () => {
 });
 
 describe('G-Code Generation & Output Formatting', () => {
-  it('should generate valid GRBL G-code strictly conforming to GRBL v1.1 / NIST RS274NGC', () => {
+  it('should generate pure clean GRBL G-code without comments by default', () => {
     const cam = new CAMEngine();
     const params = {
       ...DEFAULT_CAM_PARAMETERS,
@@ -133,25 +133,25 @@ describe('G-Code Generation & Output Formatting', () => {
     const plan = cam.processDXF(SQUARE_WITH_CIRCLE_DXF, params);
     const lines = plan.gcode.split('\n');
 
-    // 1. Modal Initialization Header
-    const gcodeOnly = lines.filter((l) => l.trim() && !l.startsWith('('));
-    expect(gcodeOnly[0]).toBe('G21');
-    expect(gcodeOnly[1]).toBe('G91.1');
-    expect(gcodeOnly[2]).toBe('G90');
-    expect(gcodeOnly[3]).toBe('G94');
-    expect(gcodeOnly[4]).toBe('G17');
-
-    // 2. Clean Comment Stripping: No executable line should contain '(' or ')'
-    for (const line of gcodeOnly) {
-      expect(line).not.toContain('(');
-      expect(line).not.toContain(')');
+    // 1. Pure Clean G-code: Zero comments and zero empty lines
+    expect(plan.gcode).not.toContain('(');
+    expect(plan.gcode).not.toContain(')');
+    for (const line of lines) {
+      expect(line.trim().length).toBeGreaterThan(0);
     }
 
+    // 2. Modal Initialization Header
+    expect(lines[0]).toBe('G21');
+    expect(lines[1]).toBe('G91.1');
+    expect(lines[2]).toBe('G90');
+    expect(lines[3]).toBe('G94');
+    expect(lines[4]).toBe('G17');
+
     // 3. Dwell formatting: G4 P0.5 on its own line
-    expect(gcodeOnly).toContain('G4 P0.5');
+    expect(lines).toContain('G4 P0.5');
 
     // 4. Clean Program Termination: Must end with M5 and M2
-    const lastCmds = gcodeOnly.slice(-2);
+    const lastCmds = lines.slice(-2);
     expect(lastCmds[0]).toBe('M5');
     expect(lastCmds[1]).toBe('M2');
 
@@ -161,7 +161,7 @@ describe('G-Code Generation & Output Formatting', () => {
     }
 
     // 6. Arc precision: check arc moves (G2/G3) have I and J relative offsets
-    const arcLines = gcodeOnly.filter((l) => /^G[23]\s/.test(l));
+    const arcLines = lines.filter((l) => /^G[23]\s/.test(l));
     expect(arcLines.length).toBeGreaterThan(0);
     for (const arc of arcLines) {
       expect(arc).toMatch(/I-?\d+(\.\d+)?/);
@@ -170,5 +170,18 @@ describe('G-Code Generation & Output Formatting', () => {
 
     expect(plan.pierceCount).toBe(2);
     expect(plan.totalCutLength).toBeGreaterThan(400);
+  });
+
+  it('should include comments when includeComments is enabled', () => {
+    const cam = new CAMEngine();
+    const params = {
+      ...DEFAULT_CAM_PARAMETERS,
+      datumOrigin: 'BOTTOM_LEFT' as const,
+      includeComments: true,
+    };
+
+    const plan = cam.processDXF(SQUARE_WITH_CIRCLE_DXF, params);
+    expect(plan.gcode).toContain('( MicroPlasma CAM - GRBL Plasma Post-Processor )');
+    expect(plan.gcode).toContain('( Main Cut Contour');
   });
 });
