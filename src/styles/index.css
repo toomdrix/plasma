@@ -505,6 +505,30 @@ aside.sidebar-panel {
   background: var(--bg-panel);
 }
 
+.info-callout {
+  background: rgba(56, 189, 248, 0.08);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+  font-size: 11px;
+  line-height: 1.45;
+  color: var(--text-secondary);
+  margin-top: 8px;
+}
+
+.info-callout strong {
+  color: var(--accent-plasma);
+}
+
+.info-callout code {
+  background: rgba(0, 0, 0, 0.4);
+  color: var(--accent-cyan);
+  padding: 1px 4px;
+  border-radius: 3px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10.5px;
+}
+
 /* Mobile Responsiveness */
 @media (max-width: 768px) {
   header.app-header {

@@ -201,8 +201,15 @@
       <div class="panel-section">
         <div class="panel-title">Post-Processor Options</div>
         <div class="control-row">
+          <label class="control-label" for="disableLaserModeToggle" title="Emit $32=0 on startup to prevent GRBL from suppressing torch relay output during stationary G4 dwells">Disable Laser Mode ($32=0)</label>
+          <input type="checkbox" id="disableLaserModeToggle" checked />
+        </div>
+        <div class="control-row">
           <label class="control-label" for="includeCommentsToggle" title="Enable informational comments in exported G-code">Include Comments</label>
           <input type="checkbox" id="includeCommentsToggle" />
+        </div>
+        <div class="info-callout">
+          <strong>⚠️ Diode Laser Conversion:</strong> Ensure GRBL Laser Mode is disabled (<code>$32=0</code>). When <code>$32=1</code>, GRBL suppresses the torch relay output during stationary <code>G4</code> pierce dwells.
         </div>
       </div>
     </aside>

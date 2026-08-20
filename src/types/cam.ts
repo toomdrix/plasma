@@ -85,6 +85,8 @@ export interface CAMParameters {
   datumOrigin: DatumOrigin;
   customOriginOffset?: Point2D;
   includeComments?: boolean;
+  disableLaserMode?: boolean;  // Emit $32=0 on start to prevent zero-velocity PWM suppression
+  spindleSpeed?: number;      // S value for M3 (default: 1000)
 }
 
 export type DatumOrigin =

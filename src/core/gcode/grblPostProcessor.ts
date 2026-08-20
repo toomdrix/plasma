@@ -38,6 +38,12 @@ export class GRBLPostProcessor {
       lines.push(`( Datum: ${params.datumOrigin} )`);
     }
 
+    // GRBL Safety: Disable Laser Mode ($32=0) to prevent PWM suppression during zero-velocity G4 dwells
+    if (params.disableLaserMode !== false) {
+      if (withComments) lines.push('( Disable GRBL Laser Mode for continuous stationary pierce relay )');
+      lines.push('$32=0');
+    }
+
     // Modal Initialization Header (G91.1 before G90 ensures buggy senders do not get stuck in G91)
     lines.push('G21');
     lines.push('G91.1');
@@ -76,8 +82,9 @@ export class GRBLPostProcessor {
       lines.push(`G0 X${this.fmt(pierceX)} Y${this.fmt(pierceY)}`);
       currentPos = { x: pierceX, y: pierceY };
 
-      // 2. Torch ON & Dwell
-      lines.push('M3 S1000');
+      // 2. Torch ON (Full 5V PWM logic high) & Stationary Pierce Dwell
+      const spindleSpeed = params.spindleSpeed || 1000;
+      lines.push(`M3 S${spindleSpeed}`);
       if (params.pierceDelay > 0) {
         lines.push(`G4 P${this.fmtDwell(params.pierceDelay)}`);
       }

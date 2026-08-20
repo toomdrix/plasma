@@ -140,15 +140,19 @@ describe('G-Code Generation & Output Formatting', () => {
       expect(line.trim().length).toBeGreaterThan(0);
     }
 
-    // 2. Modal Initialization Header
-    expect(lines[0]).toBe('G21');
-    expect(lines[1]).toBe('G91.1');
-    expect(lines[2]).toBe('G90');
-    expect(lines[3]).toBe('G94');
-    expect(lines[4]).toBe('G17');
+    // 2. Modal Initialization Header with $32=0 safety block
+    expect(lines[0]).toBe('$32=0');
+    expect(lines[1]).toBe('G21');
+    expect(lines[2]).toBe('G91.1');
+    expect(lines[3]).toBe('G90');
+    expect(lines[4]).toBe('G94');
+    expect(lines[5]).toBe('G17');
 
-    // 3. Dwell formatting: G4 P0.5 on its own line
+    // 3. Torch ON and Dwell formatting: M3 S1000 followed by G4 P0.5
+    expect(lines).toContain('M3 S1000');
     expect(lines).toContain('G4 P0.5');
+    const m3Idx = lines.indexOf('M3 S1000');
+    expect(lines[m3Idx + 1]).toBe('G4 P0.5');
 
     // 4. Clean Program Termination: Must end with M5 and M2
     const lastCmds = lines.slice(-2);
@@ -172,6 +176,19 @@ describe('G-Code Generation & Output Formatting', () => {
     expect(plan.totalCutLength).toBeGreaterThan(400);
   });
 
+  it('should omit $32=0 when disableLaserMode is false', () => {
+    const cam = new CAMEngine();
+    const params = {
+      ...DEFAULT_CAM_PARAMETERS,
+      disableLaserMode: false,
+    };
+
+    const plan = cam.processDXF(SQUARE_WITH_CIRCLE_DXF, params);
+    expect(plan.gcode).not.toContain('$32=0');
+    const lines = plan.gcode.split('\n');
+    expect(lines[0]).toBe('G21');
+  });
+
   it('should include comments when includeComments is enabled', () => {
     const cam = new CAMEngine();
     const params = {
@@ -183,5 +200,6 @@ describe('G-Code Generation & Output Formatting', () => {
     const plan = cam.processDXF(SQUARE_WITH_CIRCLE_DXF, params);
     expect(plan.gcode).toContain('( MicroPlasma CAM - GRBL Plasma Post-Processor )');
     expect(plan.gcode).toContain('( Main Cut Contour');
+    expect(plan.gcode).toContain('$32=0');
   });
 });

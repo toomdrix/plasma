@@ -38,6 +38,7 @@ class MicroPlasmaApp {
   private inputSmallHoleThreshold!: HTMLInputElement;
   private inputSmallHoleSpeedScale!: HTMLInputElement;
   private cadOriginToggle!: HTMLInputElement;
+  private disableLaserModeToggle!: HTMLInputElement;
   private includeCommentsToggle!: HTMLInputElement;
   private leadInTypePills!: NodeListOf<HTMLElement>;
   private originNodes!: NodeListOf<HTMLElement>;
@@ -91,6 +92,7 @@ class MicroPlasmaApp {
     this.inputSmallHoleThreshold = document.getElementById('paramSmallHoleThreshold') as HTMLInputElement;
     this.inputSmallHoleSpeedScale = document.getElementById('paramSmallHoleSpeedScale') as HTMLInputElement;
     this.cadOriginToggle = document.getElementById('cadOriginToggle') as HTMLInputElement;
+    this.disableLaserModeToggle = document.getElementById('disableLaserModeToggle') as HTMLInputElement;
     this.includeCommentsToggle = document.getElementById('includeCommentsToggle') as HTMLInputElement;
     this.leadInTypePills = document.querySelectorAll('#leadInTypeGroup .radio-pill');
     this.originNodes = document.querySelectorAll('#originGrid .origin-node');
@@ -242,6 +244,14 @@ class MicroPlasmaApp {
       this.reprocessCAM();
     });
 
+    // Disable Laser Mode Toggle
+    if (this.disableLaserModeToggle) {
+      this.disableLaserModeToggle.addEventListener('change', () => {
+        this.params.disableLaserMode = this.disableLaserModeToggle.checked;
+        this.reprocessCAM();
+      });
+    }
+
     // Include Comments Toggle
     if (this.includeCommentsToggle) {
       this.includeCommentsToggle.addEventListener('change', () => {
@@ -270,6 +280,9 @@ class MicroPlasmaApp {
     this.inputOverburn.value = String(this.params.overburnDistance);
     this.inputSmallHoleThreshold.value = String(this.params.smallHoleThreshold);
     this.inputSmallHoleSpeedScale.value = String(this.params.smallHoleFeedScale);
+    if (this.disableLaserModeToggle) {
+      this.disableLaserModeToggle.checked = this.params.disableLaserMode !== false;
+    }
     if (this.includeCommentsToggle) {
       this.includeCommentsToggle.checked = Boolean(this.params.includeComments);
     }
