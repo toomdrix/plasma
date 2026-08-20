@@ -6,7 +6,7 @@ export const MATERIAL_PRESETS: MaterialPreset[] = [
     name: '1.5mm Mild Steel',
     thickness: '1.5mm (16ga)',
     feedRate: 3200,
-    pierceDelay: 0.3,
+    pierceDelay: 0.7,
     kerfWidth: 1.2,
     leadInRadius: 3.5,
     overburnDistance: 3.0,
@@ -72,7 +72,7 @@ export const MATERIAL_PRESETS: MaterialPreset[] = [
 export const DEFAULT_CAM_PARAMETERS = {
   materialPreset: 'mild-steel-1-5',
   cutFeedRate: 3200,
-  pierceDelay: 0.3,
+  pierceDelay: 0.7,
   kerfWidth: 1.2,
   leadInType: 'arc' as const,
   leadInRadius: 3.5,
