@@ -83,6 +83,7 @@ export const DEFAULT_CAM_PARAMETERS = {
   smallHoleThreshold: 30.0,
   smallHoleFeedScale: 60,
   datumOrigin: 'BOTTOM_LEFT' as const,
+  positioningMode: 'relative' as const,
   includeComments: false,
   disableLaserMode: true,
   spindleSpeed: 1000,

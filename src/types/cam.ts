@@ -84,10 +84,13 @@ export interface CAMParameters {
   // Datum Origin & Export Options
   datumOrigin: DatumOrigin;
   customOriginOffset?: Point2D;
+  positioningMode?: PositioningMode; // 'relative' (G91) or 'absolute' (G90)
   includeComments?: boolean;
   disableLaserMode?: boolean;  // Emit $32=0 on start to prevent zero-velocity PWM suppression
   spindleSpeed?: number;      // S value for M3 (default: 1000)
 }
+
+export type PositioningMode = 'relative' | 'absolute';
 
 export type DatumOrigin =
   | 'BOTTOM_LEFT'

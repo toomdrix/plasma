@@ -85,131 +85,162 @@
 
       <!-- Section: Machine & Material -->
       <div class="panel-section">
-        <div class="panel-title">Machine & Material</div>
-        <div class="control-row">
-          <label class="control-label" for="paramFeedRate">Cut Feed Rate</label>
-          <div class="control-input-group">
-            <input type="number" id="paramFeedRate" class="input-num" step="50" min="100" max="15000" />
-            <span class="input-unit">mm/min</span>
-          </div>
+        <div class="panel-header">
+          <div class="panel-title">Machine & Material</div>
+          <span class="panel-chevron">▾</span>
         </div>
-        <div class="control-row">
-          <label class="control-label" for="paramPierceDelay">Pierce Delay</label>
-          <div class="control-input-group">
-            <input type="number" id="paramPierceDelay" class="input-num" step="0.05" min="0" max="10" />
-            <span class="input-unit">sec</span>
+        <div class="panel-content">
+          <div class="control-row">
+            <label class="control-label" for="paramFeedRate">Cut Feed Rate</label>
+            <div class="control-input-group">
+              <input type="number" id="paramFeedRate" class="input-num" step="50" min="100" max="15000" />
+              <span class="input-unit">mm/min</span>
+            </div>
           </div>
-        </div>
-        <div class="control-row">
-          <label class="control-label" for="paramKerfWidth">Kerf Width</label>
-          <div class="control-input-group">
-            <input type="number" id="paramKerfWidth" class="input-num" step="0.1" min="0" max="5.0" />
-            <span class="input-unit">mm</span>
+          <div class="control-row">
+            <label class="control-label" for="paramPierceDelay">Pierce Delay</label>
+            <div class="control-input-group">
+              <input type="number" id="paramPierceDelay" class="input-num" step="0.05" min="0" max="10" />
+              <span class="input-unit">sec</span>
+            </div>
+          </div>
+          <div class="control-row">
+            <label class="control-label" for="paramKerfWidth">Kerf Width</label>
+            <div class="control-input-group">
+              <input type="number" id="paramKerfWidth" class="input-num" step="0.1" min="0" max="5.0" />
+              <span class="input-unit">mm</span>
+            </div>
           </div>
         </div>
       </div>
 
       <!-- Section: Lead-In & Lead-Out -->
       <div class="panel-section">
-        <div class="panel-title">Lead-In & Lead-Out</div>
-        <div class="control-row">
-          <label class="control-label">Type</label>
-          <div class="radio-pill-group" id="leadInTypeGroup">
-            <div class="radio-pill active" data-value="arc">Arc</div>
-            <div class="radio-pill" data-value="line">Linear</div>
-            <div class="radio-pill" data-value="center_pierce">Center</div>
-          </div>
+        <div class="panel-header">
+          <div class="panel-title">Lead-In & Lead-Out</div>
+          <span class="panel-chevron">▾</span>
         </div>
-        <div class="control-row">
-          <label class="control-label" for="paramLeadInRadius">Radius / Length</label>
-          <div class="control-input-group">
-            <input type="number" id="paramLeadInRadius" class="input-num" step="0.5" min="1.0" max="25" />
-            <span class="input-unit">mm</span>
+        <div class="panel-content">
+          <div class="control-row">
+            <label class="control-label">Type</label>
+            <div class="radio-pill-group" id="leadInTypeGroup">
+              <div class="radio-pill active" data-value="arc">Arc</div>
+              <div class="radio-pill" data-value="line">Linear</div>
+              <div class="radio-pill" data-value="center_pierce">Center</div>
+            </div>
           </div>
-        </div>
-        <div class="control-row">
-          <label class="control-label" for="paramLeadInAngle">Arc Sweep Angle</label>
-          <div class="control-input-group">
-            <input type="number" id="paramLeadInAngle" class="input-num" step="5" min="30" max="120" />
-            <span class="input-unit">deg</span>
+          <div class="control-row">
+            <label class="control-label" for="paramLeadInRadius">Radius / Length</label>
+            <div class="control-input-group">
+              <input type="number" id="paramLeadInRadius" class="input-num" step="0.5" min="1.0" max="25" />
+              <span class="input-unit">mm</span>
+            </div>
           </div>
-        </div>
-        <div class="control-row">
-          <label class="control-label" for="paramLeadOutLength">Lead-Out Length</label>
-          <div class="control-input-group">
-            <input type="number" id="paramLeadOutLength" class="input-num" step="0.5" min="0" max="10" />
-            <span class="input-unit">mm</span>
+          <div class="control-row">
+            <label class="control-label" for="paramLeadInAngle">Arc Sweep Angle</label>
+            <div class="control-input-group">
+              <input type="number" id="paramLeadInAngle" class="input-num" step="5" min="30" max="120" />
+              <span class="input-unit">deg</span>
+            </div>
+          </div>
+          <div class="control-row">
+            <label class="control-label" for="paramLeadOutLength">Lead-Out Length</label>
+            <div class="control-input-group">
+              <input type="number" id="paramLeadOutLength" class="input-num" step="0.5" min="0" max="10" />
+              <span class="input-unit">mm</span>
+            </div>
           </div>
         </div>
       </div>
 
       <!-- Section: Plasma Hole Rules -->
       <div class="panel-section">
-        <div class="panel-title">Plasma Hole Rules</div>
-        <div class="control-row">
-          <label class="control-label" for="paramOverburn">Overburn Distance</label>
-          <div class="control-input-group">
-            <input type="number" id="paramOverburn" class="input-num" step="0.5" min="0" max="15" />
-            <span class="input-unit">mm</span>
-          </div>
+        <div class="panel-header">
+          <div class="panel-title">Plasma Hole Rules</div>
+          <span class="panel-chevron">▾</span>
         </div>
-        <div class="control-row">
-          <label class="control-label" for="paramSmallHoleThreshold">Small Hole Cutoff</label>
-          <div class="control-input-group">
-            <input type="number" id="paramSmallHoleThreshold" class="input-num" step="1" min="5" max="100" />
-            <span class="input-unit">mm</span>
+        <div class="panel-content">
+          <div class="control-row">
+            <label class="control-label" for="paramOverburn">Overburn Distance</label>
+            <div class="control-input-group">
+              <input type="number" id="paramOverburn" class="input-num" step="0.5" min="0" max="15" />
+              <span class="input-unit">mm</span>
+            </div>
           </div>
-        </div>
-        <div class="control-row">
-          <label class="control-label" for="paramSmallHoleSpeedScale">Small Hole Speed</label>
-          <div class="control-input-group">
-            <input type="number" id="paramSmallHoleSpeedScale" class="input-num" step="5" min="20" max="100" />
-            <span class="input-unit">%</span>
+          <div class="control-row">
+            <label class="control-label" for="paramSmallHoleThreshold">Small Hole Cutoff</label>
+            <div class="control-input-group">
+              <input type="number" id="paramSmallHoleThreshold" class="input-num" step="1" min="5" max="100" />
+              <span class="input-unit">mm</span>
+            </div>
+          </div>
+          <div class="control-row">
+            <label class="control-label" for="paramSmallHoleSpeedScale">Small Hole Speed</label>
+            <div class="control-input-group">
+              <input type="number" id="paramSmallHoleSpeedScale" class="input-num" step="5" min="20" max="100" />
+              <span class="input-unit">%</span>
+            </div>
           </div>
         </div>
       </div>
 
       <!-- Section: Datum Origin Alignment -->
       <div class="panel-section">
-        <div class="panel-title">
-          <span>Datum Origin Alignment</span>
-          <span id="currentDatumLabel" style="color: var(--accent-plasma); font-size: 10px;">Bottom-Left</span>
-        </div>
-
-        <div style="margin-bottom: 12px;">
-          <!-- 9-point grid -->
-          <div class="origin-grid" id="originGrid">
-            <div class="origin-node" data-datum="TOP_LEFT" title="Top-Left"><div class="origin-node-dot"></div></div>
-            <div class="origin-node" data-datum="TOP_CENTER" title="Top-Center"><div class="origin-node-dot"></div></div>
-            <div class="origin-node" data-datum="TOP_RIGHT" title="Top-Right"><div class="origin-node-dot"></div></div>
-            <div class="origin-node" data-datum="MIDDLE_LEFT" title="Middle-Left"><div class="origin-node-dot"></div></div>
-            <div class="origin-node" data-datum="CENTER" title="Center"><div class="origin-node-dot"></div></div>
-            <div class="origin-node" data-datum="MIDDLE_RIGHT" title="Middle-Right"><div class="origin-node-dot"></div></div>
-            <div class="origin-node active" data-datum="BOTTOM_LEFT" title="Bottom-Left"><div class="origin-node-dot"></div></div>
-            <div class="origin-node" data-datum="BOTTOM_CENTER" title="Bottom-Center"><div class="origin-node-dot"></div></div>
-            <div class="origin-node" data-datum="BOTTOM_RIGHT" title="Bottom-Right"><div class="origin-node-dot"></div></div>
+        <div class="panel-header">
+          <div class="panel-title">Datum Origin Alignment</div>
+          <div class="panel-header-right">
+            <span id="currentDatumLabel" class="panel-badge">Bottom-Left</span>
+            <span class="panel-chevron">▾</span>
           </div>
         </div>
+        <div class="panel-content">
+          <div style="margin-bottom: 12px;">
+            <!-- 9-point grid -->
+            <div class="origin-grid" id="originGrid">
+              <div class="origin-node" data-datum="TOP_LEFT" title="Top-Left"><div class="origin-node-dot"></div></div>
+              <div class="origin-node" data-datum="TOP_CENTER" title="Top-Center"><div class="origin-node-dot"></div></div>
+              <div class="origin-node" data-datum="TOP_RIGHT" title="Top-Right"><div class="origin-node-dot"></div></div>
+              <div class="origin-node" data-datum="MIDDLE_LEFT" title="Middle-Left"><div class="origin-node-dot"></div></div>
+              <div class="origin-node" data-datum="CENTER" title="Center"><div class="origin-node-dot"></div></div>
+              <div class="origin-node" data-datum="MIDDLE_RIGHT" title="Middle-Right"><div class="origin-node-dot"></div></div>
+              <div class="origin-node active" data-datum="BOTTOM_LEFT" title="Bottom-Left"><div class="origin-node-dot"></div></div>
+              <div class="origin-node" data-datum="BOTTOM_CENTER" title="Bottom-Center"><div class="origin-node-dot"></div></div>
+              <div class="origin-node" data-datum="BOTTOM_RIGHT" title="Bottom-Right"><div class="origin-node-dot"></div></div>
+            </div>
+          </div>
 
-        <div class="control-row">
-          <label class="control-label" for="cadOriginToggle">Use CAD Origin (0,0)</label>
-          <input type="checkbox" id="cadOriginToggle" />
+          <div class="control-row">
+            <label class="control-label" for="cadOriginToggle">Use CAD Origin (0,0)</label>
+            <input type="checkbox" id="cadOriginToggle" />
+          </div>
         </div>
       </div>
 
       <!-- Section: Export Options -->
       <div class="panel-section">
-        <div class="panel-title">Post-Processor Options</div>
-        <div class="control-row">
-          <label class="control-label" for="disableLaserModeToggle" title="Emit $32=0 on startup to prevent GRBL from suppressing torch relay output during stationary G4 dwells">Disable Laser Mode ($32=0)</label>
-          <input type="checkbox" id="disableLaserModeToggle" checked />
+        <div class="panel-header">
+          <div class="panel-title">Post-Processor Options</div>
+          <span class="panel-chevron">▾</span>
         </div>
-        <div class="control-row">
-          <label class="control-label" for="includeCommentsToggle" title="Enable informational comments in exported G-code">Include Comments</label>
-          <input type="checkbox" id="includeCommentsToggle" />
-        </div>
-        <div class="info-callout">
-          <strong>⚠️ Diode Laser Conversion:</strong> Ensure GRBL Laser Mode is disabled (<code>$32=0</code>). When <code>$32=1</code>, GRBL suppresses the torch relay output during stationary <code>G4</code> pierce dwells.
+        <div class="panel-content">
+          <div class="control-row">
+            <label class="control-label">Positioning</label>
+            <div class="radio-pill-group" id="positioningModeGroup">
+              <div class="radio-pill active" data-value="relative" title="Incremental/Relative positioning (G91) - moves relative to current torch position">Relative (G91)</div>
+              <div class="radio-pill" data-value="absolute" title="Absolute positioning (G90) - moves relative to work coordinate origin">Absolute (G90)</div>
+            </div>
+          </div>
+          <div class="control-row">
+            <label class="control-label" for="disableLaserModeToggle" title="Emit $32=0 on startup to prevent GRBL from suppressing torch relay output during stationary G4 dwells">Disable Laser Mode ($32=0)</label>
+            <input type="checkbox" id="disableLaserModeToggle" checked />
+          </div>
+          <div class="control-row">
+            <label class="control-label" for="includeCommentsToggle" title="Enable informational comments in exported G-code">Include Comments</label>
+            <input type="checkbox" id="includeCommentsToggle" />
+          </div>
+          <div class="info-callout">
+            <strong>⚠️ Diode Laser Conversion:</strong> Ensure GRBL Laser Mode is disabled (<code>$32=0</code>). When <code>$32=1</code>, GRBL suppresses the torch relay output during stationary <code>G4</code> pierce dwells.
+          </div>
         </div>
       </div>
     </aside>

@@ -29,13 +29,14 @@ export class GRBLPostProcessor {
     const originShift = this.computeOriginShift(bounds, params.datumOrigin, params.customOriginOffset);
     const lines: string[] = [];
     const withComments = Boolean(params.includeComments);
+    const isRelative = params.positioningMode !== 'absolute'; // Default to relative (G91)
 
     // Optional informational header comments
     if (withComments) {
       lines.push('( MicroPlasma CAM - GRBL Plasma Post-Processor )');
       lines.push(`( Material: ${params.materialPreset || 'Custom'} )`);
       lines.push(`( Feed: ${params.cutFeedRate} mm/min, Pierce Delay: ${this.fmtDwell(params.pierceDelay)}s, Kerf: ${params.kerfWidth} mm )`);
-      lines.push(`( Datum: ${params.datumOrigin} )`);
+      lines.push(`( Datum: ${params.datumOrigin}, Positioning: ${isRelative ? 'Relative (G91)' : 'Absolute (G90)'} )`);
     }
 
     // GRBL Safety: Disable Laser Mode ($32=0) to prevent PWM suppression during zero-velocity G4 dwells
@@ -44,10 +45,10 @@ export class GRBLPostProcessor {
       lines.push('$32=0');
     }
 
-    // Modal Initialization Header (G91.1 before G90 ensures buggy senders do not get stuck in G91)
+    // Modal Initialization Header
     lines.push('G21');
     lines.push('G91.1');
-    lines.push('G90');
+    lines.push(isRelative ? 'G91' : 'G90');
     lines.push('G94');
     lines.push('G17');
     if (withComments) lines.push('');
@@ -79,7 +80,13 @@ export class GRBLPostProcessor {
       totalRapidLength += rapidDist;
       totalRapidTimeMin += rapidDist / RAPID_SPEED_MM_MIN;
 
-      lines.push(`G0 X${this.fmt(pierceX)} Y${this.fmt(pierceY)}`);
+      if (isRelative) {
+        const dX = pierceX - currentPos.x;
+        const dY = pierceY - currentPos.y;
+        lines.push(`G0 X${this.fmt(dX)} Y${this.fmt(dY)}`);
+      } else {
+        lines.push(`G0 X${this.fmt(pierceX)} Y${this.fmt(pierceY)}`);
+      }
       currentPos = { x: pierceX, y: pierceY };
 
       // 2. Torch ON (Full 5V PWM logic high) & Stationary Pierce Dwell
@@ -95,7 +102,7 @@ export class GRBLPostProcessor {
       if (op.leadIn.segments.length > 0) {
         if (withComments) lines.push(`( Lead-in @ F${opFeed} )`);
         for (const seg of op.leadIn.segments) {
-          const segDist = this.emitSegmentGCode(seg, originShift, opFeed, lines, true);
+          const segDist = this.emitSegmentGCode(seg, originShift, opFeed, lines, true, isRelative, currentPos);
           totalCutLength += segDist;
           totalCutTimeMin += segDist / opFeed;
           currentPos = { x: seg.end.x + originShift.x, y: seg.end.y + originShift.y };
@@ -105,7 +112,7 @@ export class GRBLPostProcessor {
       // 4. Main Cut Contour
       if (withComments) lines.push(`( Main Cut Contour @ F${opFeed} )`);
       for (const seg of op.cutPath) {
-        const segDist = this.emitSegmentGCode(seg, originShift, opFeed, lines, false);
+        const segDist = this.emitSegmentGCode(seg, originShift, opFeed, lines, false, isRelative, currentPos);
         totalCutLength += segDist;
         totalCutTimeMin += segDist / opFeed;
         currentPos = { x: seg.end.x + originShift.x, y: seg.end.y + originShift.y };
@@ -116,7 +123,7 @@ export class GRBLPostProcessor {
         lines.push('M5');
         if (withComments) lines.push('( Overburn coasting through cut line )');
         for (const seg of op.overburn.segments) {
-          const segDist = this.emitSegmentGCode(seg, originShift, opFeed, lines, false);
+          const segDist = this.emitSegmentGCode(seg, originShift, opFeed, lines, false, isRelative, currentPos);
           totalCutLength += segDist;
           totalCutTimeMin += segDist / opFeed;
           currentPos = { x: seg.end.x + originShift.x, y: seg.end.y + originShift.y };
@@ -130,7 +137,7 @@ export class GRBLPostProcessor {
       if (op.leadOut && op.leadOut.segments.length > 0) {
         if (withComments) lines.push('( Lead-out )');
         for (const seg of op.leadOut.segments) {
-          const segDist = this.emitSegmentGCode(seg, originShift, opFeed, lines, false);
+          const segDist = this.emitSegmentGCode(seg, originShift, opFeed, lines, false, isRelative, currentPos);
           totalCutLength += segDist;
           totalCutTimeMin += segDist / opFeed;
           currentPos = { x: seg.end.x + originShift.x, y: seg.end.y + originShift.y };
@@ -146,9 +153,17 @@ export class GRBLPostProcessor {
     totalRapidLength += returnDist;
     totalRapidTimeMin += returnDist / RAPID_SPEED_MM_MIN;
 
-    lines.push('G0 X0 Y0');
-    lines.push('M5');
-    lines.push('M2');
+    if (isRelative) {
+      const dX = 0 - currentPos.x;
+      const dY = 0 - currentPos.y;
+      lines.push(`G0 X${this.fmt(dX)} Y${this.fmt(dY)}`);
+      lines.push('M5');
+      lines.push('M2');
+    } else {
+      lines.push('G0 X0 Y0');
+      lines.push('M5');
+      lines.push('M2');
+    }
 
     const estimatedTimeSec = Math.round(
       totalCutTimeMin * 60 + totalRapidTimeMin * 60 + pierceCount * (params.pierceDelay + 0.5)
@@ -171,7 +186,9 @@ export class GRBLPostProcessor {
     originShift: Point2D,
     feedRate: number,
     lines: string[],
-    includeFeed: boolean
+    includeFeed: boolean,
+    isRelative: boolean = false,
+    currentPos: Point2D = { x: 0, y: 0 }
   ): number {
     const endX = seg.end.x + originShift.x;
     const endY = seg.end.y + originShift.y;
@@ -179,7 +196,13 @@ export class GRBLPostProcessor {
 
     if (seg.type === 'line') {
       const dist = Math.hypot(seg.end.x - seg.start.x, seg.end.y - seg.start.y);
-      lines.push(`G1 X${this.fmt(endX)} Y${this.fmt(endY)}${feedStr}`);
+      if (isRelative) {
+        const dX = endX - currentPos.x;
+        const dY = endY - currentPos.y;
+        lines.push(`G1 X${this.fmt(dX)} Y${this.fmt(dY)}${feedStr}`);
+      } else {
+        lines.push(`G1 X${this.fmt(endX)} Y${this.fmt(endY)}${feedStr}`);
+      }
       return dist;
     } else {
       const arc = seg as ArcSegment;
@@ -193,9 +216,17 @@ export class GRBLPostProcessor {
       const jVal = centerY - startY;
 
       const gCodeCmd = arc.clockwise ? 'G2' : 'G3';
-      lines.push(
-        `${gCodeCmd} X${this.fmt(endX)} Y${this.fmt(endY)} I${this.fmt(iVal)} J${this.fmt(jVal)}${feedStr}`
-      );
+      if (isRelative) {
+        const dX = endX - currentPos.x;
+        const dY = endY - currentPos.y;
+        lines.push(
+          `${gCodeCmd} X${this.fmt(dX)} Y${this.fmt(dY)} I${this.fmt(iVal)} J${this.fmt(jVal)}${feedStr}`
+        );
+      } else {
+        lines.push(
+          `${gCodeCmd} X${this.fmt(endX)} Y${this.fmt(endY)} I${this.fmt(iVal)} J${this.fmt(jVal)}${feedStr}`
+        );
+      }
 
       let sweep = arc.clockwise
         ? (arc.startAngle - arc.endAngle + 2 * Math.PI) % (2 * Math.PI)

@@ -140,11 +140,11 @@ describe('G-Code Generation & Output Formatting', () => {
       expect(line.trim().length).toBeGreaterThan(0);
     }
 
-    // 2. Modal Initialization Header with $32=0 safety block
+    // 2. Modal Initialization Header with $32=0 safety block (G91 Relative by default)
     expect(lines[0]).toBe('$32=0');
     expect(lines[1]).toBe('G21');
     expect(lines[2]).toBe('G91.1');
-    expect(lines[3]).toBe('G90');
+    expect(lines[3]).toBe('G91');
     expect(lines[4]).toBe('G94');
     expect(lines[5]).toBe('G17');
 
@@ -174,6 +174,49 @@ describe('G-Code Generation & Output Formatting', () => {
 
     expect(plan.pierceCount).toBe(2);
     expect(plan.totalCutLength).toBeGreaterThan(400);
+  });
+
+  it('should generate absolute G90 G-code when positioningMode is absolute', () => {
+    const cam = new CAMEngine();
+    const params = {
+      ...DEFAULT_CAM_PARAMETERS,
+      datumOrigin: 'BOTTOM_LEFT' as const,
+      positioningMode: 'absolute' as const,
+      pierceDelay: 0.5,
+    };
+
+    const plan = cam.processDXF(SQUARE_WITH_CIRCLE_DXF, params);
+    const lines = plan.gcode.split('\n');
+
+    expect(lines[3]).toBe('G90');
+    expect(plan.gcode).toContain('G0 X0 Y0');
+  });
+
+  it('should generate relative G91 G-code with incremental moves that sum back to origin', () => {
+    const cam = new CAMEngine();
+    const params = {
+      ...DEFAULT_CAM_PARAMETERS,
+      datumOrigin: 'CENTER' as const,
+      positioningMode: 'relative' as const,
+    };
+
+    const plan = cam.processDXF(SQUARE_WITH_CIRCLE_DXF, params);
+    const lines = plan.gcode.split('\n');
+
+    expect(lines[3]).toBe('G91');
+
+    // Parse all G0, G1, G2, G3 displacement moves and ensure net displacement is 0 (returns to start)
+    let netX = 0;
+    let netY = 0;
+    for (const line of lines) {
+      const match = line.match(/^G[0123]\s+X(-?\d+(\.\d+)?)\s+Y(-?\d+(\.\d+)?)/);
+      if (match) {
+        netX += parseFloat(match[1]);
+        netY += parseFloat(match[3]);
+      }
+    }
+    expect(netX).toBeCloseTo(0, 1);
+    expect(netY).toBeCloseTo(0, 1);
   });
 
   it('should omit $32=0 when disableLaserMode is false', () => {

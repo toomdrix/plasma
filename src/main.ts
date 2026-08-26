@@ -3,7 +3,7 @@ import { CAMEngine } from './core/cam/camEngine';
 import { MATERIAL_PRESETS, DEFAULT_CAM_PARAMETERS } from './core/cam/presets';
 import { SAMPLE_PARTS } from './ui/components/SampleParts';
 import { GCodeModal } from './ui/components/GCodeModal';
-import { CAMParameters, ProcessedCAMPlan, DatumOrigin, LeadInType } from './types/cam';
+import { CAMParameters, ProcessedCAMPlan, DatumOrigin, LeadInType, PositioningMode } from './types/cam';
 
 class MicroPlasmaApp {
   private camEngine: CAMEngine;
@@ -41,6 +41,7 @@ class MicroPlasmaApp {
   private disableLaserModeToggle!: HTMLInputElement;
   private includeCommentsToggle!: HTMLInputElement;
   private leadInTypePills!: NodeListOf<HTMLElement>;
+  private positioningModePills!: NodeListOf<HTMLElement>;
   private originNodes!: NodeListOf<HTMLElement>;
   private currentDatumLabel!: HTMLElement;
 
@@ -95,6 +96,7 @@ class MicroPlasmaApp {
     this.disableLaserModeToggle = document.getElementById('disableLaserModeToggle') as HTMLInputElement;
     this.includeCommentsToggle = document.getElementById('includeCommentsToggle') as HTMLInputElement;
     this.leadInTypePills = document.querySelectorAll('#leadInTypeGroup .radio-pill');
+    this.positioningModePills = document.querySelectorAll('#positioningModeGroup .radio-pill');
     this.originNodes = document.querySelectorAll('#originGrid .origin-node');
     this.currentDatumLabel = document.getElementById('currentDatumLabel')!;
 
@@ -178,6 +180,16 @@ class MicroPlasmaApp {
       this.sidebarPanel.classList.toggle('collapsed');
     });
 
+    // Collapsible Sidebar Sections (Accordion)
+    document.querySelectorAll('.panel-section .panel-header').forEach((header) => {
+      header.addEventListener('click', () => {
+        const section = header.closest('.panel-section');
+        if (section) {
+          section.classList.toggle('collapsed');
+        }
+      });
+    });
+
     // Export G-Code Button
     this.btnExportGCode.addEventListener('click', () => {
       if (this.currentPlan && this.currentPlan.gcode) {
@@ -212,6 +224,16 @@ class MicroPlasmaApp {
         this.leadInTypePills.forEach((p) => p.classList.remove('active'));
         pill.classList.add('active');
         this.params.leadInType = pill.dataset.value as LeadInType;
+        this.reprocessCAM();
+      });
+    });
+
+    // Positioning Mode Pills (G91 Relative / G90 Absolute)
+    this.positioningModePills.forEach((pill) => {
+      pill.addEventListener('click', () => {
+        this.positioningModePills.forEach((p) => p.classList.remove('active'));
+        pill.classList.add('active');
+        this.params.positioningMode = pill.dataset.value as PositioningMode;
         this.reprocessCAM();
       });
     });
@@ -289,6 +311,15 @@ class MicroPlasmaApp {
 
     this.leadInTypePills.forEach((pill) => {
       if (pill.dataset.value === this.params.leadInType) {
+        pill.classList.add('active');
+      } else {
+        pill.classList.remove('active');
+      }
+    });
+
+    this.positioningModePills.forEach((pill) => {
+      const isMatch = (this.params.positioningMode || 'relative') === pill.dataset.value;
+      if (isMatch) {
         pill.classList.add('active');
       } else {
         pill.classList.remove('active');
