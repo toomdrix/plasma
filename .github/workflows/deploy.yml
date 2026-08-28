@@ -1,0 +1,47 @@
+name: Deploy MicroPlasma CAM to GitHub Pages
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout plasma repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm test
+
+      - name: Build application
+        run: npm run build
+
+      - name: Checkout toomdrix.github.io repository
+        uses: actions/checkout@v4
+        with:
+          repository: toomdrix/toomdrix.github.io
+          token: ${{ secrets.PAT_TOKEN }}
+          path: pages
+
+      - name: Deploy to /plasma subdirectory
+        run: |
+          mkdir -p pages/plasma
+          rm -rf pages/plasma/*
+          cp -r dist/* pages/plasma/
+          cd pages
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add plasma
+          git diff --quiet && git diff --staged --quiet || git commit -m "Deploy MicroPlasma CAM to /plasma"
+          git push
